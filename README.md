@@ -42,6 +42,8 @@ cache.clear(); // cache was cleared
 
 Enable compression:
 
+note: node 0.10.x does not support the synchronous zlib method variants, so compression is only available > 0.10.x
+
 ```js
 var Cache = require('sync-disk-cache');
 var cache = new Cache('my-cache', {
