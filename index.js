@@ -64,6 +64,14 @@ var COMPRESSIONS = {
     out: zlib.gunzipSync,
   },
 };
+
+function hasCompression(compression) {
+  if (/^v0\.10\.\d+/.test(process.version) && compression) {
+    throw new Error('node: [version:' +
+                    process.version +
+                    '] does not support synchronous zlib compression APIs');
+  }
+}
 /*
  *
  * @class Cache
@@ -74,7 +82,13 @@ var COMPRESSIONS = {
 function Cache(key, _) {
   var options = _ || {};
   this.tmpDir = options.location|| tmpDir;
+
+  if (options.compression) {
+    hasCompression(options.compression)
+  }
   this.compression = options.compression;
+
+
   this.key = key || 'default-disk-cache';
   this.root = path.join(this.tmpDir, this.key);
 

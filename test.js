@@ -66,83 +66,111 @@ describe('cache', function() {
 
 var zlib = require('zlib');
 
-describe('cache compress: [ deflate ]', function() {
-  var cache;
-  var key = 'path/to/file.js';
-  var value = 'Some test value';
+if (/^v0\.10\.\d+$/.test(process.version)) {
+  describe('disabled compression in node v0.10.x', function(){
+    it('deflate should throw', function() {
+      should(function(){
+        new Cache('foo', {
+          compression: 'deflate'
+        })
+      }).throwError(/does not support synchronous zlib compression APIs/);
+    });
 
-  beforeEach(function() {
-    cache = new Cache('my-testing-cache', {
-      compression: 'deflate'
+    it('deflateRaw', function(){
+      should(function(){
+        new Cache('foo', {
+          compression: 'deflateRaw'
+        })
+      }).throwError(/does not support synchronous zlib compression APIs/);
+    });
+
+    it('gzip', function(){
+      should(function(){
+        new Cache('foo', {
+          compression: 'gunzip'
+        })
+      }).throwError(/does not support synchronous zlib compression APIs/);
+    });
+  });
+} else {
+  describe('cache compress: [ deflate ]', function() {
+    var cache;
+    var key = 'path/to/file.js';
+    var value = 'Some test value';
+
+    beforeEach(function() {
+      cache = new Cache('my-testing-cache', {
+        compression: 'deflate'
+      });
+    });
+
+    afterEach(function() {
+      cache.clear();
+    });
+
+    it('set', function() {
+      var filePath = cache.set(key, value);
+      var stats = fs.statSync(filePath);
+      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+
+      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+
+      should(zlib.inflateSync(fs.readFileSync(filePath)).toString()).equal(value);
+      should(cache.get(key).value).equal(value);
     });
   });
 
-  afterEach(function() {
-    cache.clear();
-  });
+  describe('cache compress: [ gzip ]', function() {
+    var cache;
+    var key = 'path/to/file.js';
+    var value = 'Some test value';
 
-  it('set', function() {
-    var filePath = cache.set(key, value);
-    var stats = fs.statSync(filePath);
-    var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    beforeEach(function() {
+      cache = new Cache('my-testing-cache', {
+        compression: 'gzip'
+      });
+    });
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    afterEach(function() {
+      return cache.clear();
+    });
 
-    should(zlib.inflateSync(fs.readFileSync(filePath)).toString()).equal(value);
-    should(cache.get(key).value).equal(value);
-  });
-});
+    it('set', function() {
+      var filePath = cache.set(key, value);
+      var stats = fs.statSync(filePath);
+      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-describe('cache compress: [ gzip ]', function() {
-  var cache;
-  var key = 'path/to/file.js';
-  var value = 'Some test value';
+      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
-  beforeEach(function() {
-    cache = new Cache('my-testing-cache', {
-      compression: 'gzip'
+      should(zlib.gunzipSync(fs.readFileSync(filePath)).toString()).equal(value);
+      should(cache.get(key).value).equal(value);
     });
   });
 
-  afterEach(function() {
-    return cache.clear();
-  });
+  describe('cache compress: [ deflateRaw ]', function() {
+    var cache;
+    var key = 'path/to/file.js';
+    var value = 'Some test value';
 
-  it('set', function() {
-    var filePath = cache.set(key, value);
-    var stats = fs.statSync(filePath);
-    var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    beforeEach(function() {
+      cache = new Cache('my-testing-cache', {
+        compression: 'deflateRaw'
+      });
+    });
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    afterEach(function() {
+      return cache.clear();
+    });
 
-    should(zlib.gunzipSync(fs.readFileSync(filePath)).toString()).equal(value);
-    should(cache.get(key).value).equal(value);
-  });
-});
+    it('set', function() {
+      var filePath = cache.set(key, value);
+      var stats = fs.statSync(filePath);
+      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-describe('cache compress: [ deflateRaw ]', function() {
-  var cache;
-  var key = 'path/to/file.js';
-  var value = 'Some test value';
+      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
-  beforeEach(function() {
-    cache = new Cache('my-testing-cache', {
-      compression: 'deflateRaw'
+      should(zlib.inflateRawSync(fs.readFileSync(filePath)).toString()).equal(value);
+      should(cache.get(key).value).equal(value);
     });
   });
-
-  afterEach(function() {
-    return cache.clear();
-  });
-
-  it('set', function() {
-    var filePath = cache.set(key, value);
-    var stats = fs.statSync(filePath);
-    var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
-
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
-
-    should(zlib.inflateRawSync(fs.readFileSync(filePath)).toString()).equal(value);
-    should(cache.get(key).value).equal(value);
-  });
-});
+}
