@@ -37,6 +37,16 @@ cache.set('foo', 'content of foo'); // was set
 cache.clear(); // cache was cleared
 ```
 
+
+Enable compression:
+
+```js
+var Cache = require('sync-disk-cache');
+var cache = new Cache('my-cache', {
+  compression: 'gzip' | 'deflate' | 'deflateRaw' // basically just what nodes zlib's ships with
+})
+```
+
 ## License
 
 Licensed under the MIT License, Copyright 2015 Stefan Penner

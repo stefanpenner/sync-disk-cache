@@ -10,13 +10,13 @@ var unlink = fs.unlinkSync;
 var chmod = fs.chmodSync;
 var tmpDir = require('os').tmpDir();
 var debug = require('debug')('sync-disk-cache');
+var zlib = require('zlib');
 
 var mode = {
   mode: parseInt('0777', 8)
 };
 
 var CacheEntry = require('./lib/cache-entry');
-
 /*
  * @private
  * @method processFile
@@ -48,19 +48,37 @@ function handleENOENT(reason) {
   throw reason;
 }
 
+var COMPRESSIONS = {
+  deflate: {
+    in: zlib.deflateSync,
+    out: zlib.inflateSync,
+  },
+
+  deflateRaw: {
+    in: zlib.deflateRawSync,
+    out: zlib.inflateRawSync,
+  },
+
+  gzip: {
+    in: zlib.gzipSync,
+    out: zlib.gunzipSync,
+  },
+};
 /*
  *
  * @class Cache
  * @param {String} key the global key that represents this cache in its final location
- * @param {String} location an optional string path to the location for the
+ * @param {String} options optional string path to the location for the
  *                          cache. If omitted the system tmpdir is used
  */
-function Cache(key, location) {
-  this.tmpDir =  location|| tmpDir;
+function Cache(key, _) {
+  var options = _ || {};
+  this.tmpDir = options.location|| tmpDir;
+  this.compression = options.compression;
   this.key = key || 'default-disk-cache';
   this.root = path.join(this.tmpDir, this.key);
 
-  debug('new Cache { root: %s }', this.root);
+  debug('new Cache { root: %s, compression: %s }', this.root, this.compression);
 }
 
 /*
@@ -106,7 +124,7 @@ Cache.prototype.get = function(key) {
   debug('get: %s', filePath);
 
   try {
-    return processFile(filePath, readFile(filePath));
+    return processFile(filePath, this.decompress(readFile(filePath)));
   } catch(e) {
     return handleENOENT(e);
   }
@@ -126,7 +144,7 @@ Cache.prototype.set = function(key, value) {
   debug('set : %s', filePath);
 
   mkdirp(path.dirname(filePath), mode);
-  writeFile(filePath, value, mode);
+  writeFile(filePath, this.compress(value), mode);
   chmod(filePath, mode.mode);
 
   return filePath;
@@ -157,11 +175,33 @@ Cache.prototype.remove = function(key) {
  * @method pathFor
  * @param {String} key the key to generate the final path for
  * @returns the path where the key's value may reside
- *
- *
  */
 Cache.prototype.pathFor = function(key) {
   return path.join(this.root, key);
+};
+
+/*
+ * @public
+ *
+ * @method decompress
+ * @param {String} compressedValue
+ * @returns decompressedValue
+ */
+Cache.prototype.decompress = function(value) {
+  if (!this.compression) { return value; }
+  return COMPRESSIONS[this.compression].out(value);
+};
+
+/*
+ * @public
+ *
+ * @method compress
+ * @param {String} value
+ * @returns compressedValue
+ */
+Cache.prototype.compress = function(value) {
+  if (!this.compression) { return value; }
+  return COMPRESSIONS[this.compression].in(value);
 };
 
 module.exports = Cache;
