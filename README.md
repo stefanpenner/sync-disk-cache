@@ -3,6 +3,8 @@
 
 A sync disk cache. inspired by [jgable/cache-swap](https://github.com/jgable/cache-swap)
 
+An async sibling version is also available: [stefanpenner/async-disk-cache](https://github.com/stefanpenner/async-disk-cache/)
+
 ## Example
 
 ```js
