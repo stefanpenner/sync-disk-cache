@@ -1,50 +1,40 @@
-# async-disk-cache [![Build status](https://ci.appveyor.com/api/projects/status/lfliompah66m611x?svg=true)](https://ci.appveyor.com/project/embercli/async-disk-cache)
+# sync-disk-cache [![Build status](https://ci.appveyor.com/api/projects/status/lfliompah66m611x?svg=true)](https://ci.appveyor.com/project/embercli/sync-disk-cache)
 
 
-An aync disk cache. inspired by [jgable/cache-swap](https://github.com/jgable/cache-swap)
+A sync disk cache. inspired by [jgable/cache-swap](https://github.com/jgable/cache-swap)
 
 ## Example
 
 ```js
-var Cache = require('async-disk-cache');
+var Cache = require('sync-disk-cache');
 var cache = new Cache('my-cache');
 // 'my-cache' also serves as the global key for the cache.
 // if you have multiple programs with this same `cache-key` they will share the
 // same backing store. This by design.
 
 // checking
-cache.has('foo').then(function(wasFooFound) {
-
-});
+cache.has('foo') === wasFooFound;
 
 // retrieving (cache hit)
-cache.get('foo').then(function(cacheEntry) {
-  cacheEntry === {
-    isCached: true,
-    path: 'foo',
-    content: 'content of foo'
-  }
-});
+cache.get('foo') === {
+  isCached: true,
+  path: 'foo',
+  content: 'content of foo'
+}
 
 // retrieving (cache miss)
-cache.get('foo').then(function(cacheEntry) {
-  cacheEntry === {
-    isCached: false,
-    path: 'foo',
-    content: undefined
-  }
-});
+cache.get('foo') === {
+  isCached: false,
+  path: 'foo',
+  content: undefined
+}
 
 // retrieving (cache miss)
-cache.set('foo', 'content of foo').then(function() {
-  // was set
-});
+cache.set('foo', 'content of foo'); // was set
 
 // clearing the cache
 
-cache.clear().then(function() {
-  // cache was cleared
-})
+cache.clear(); // cache was cleared
 ```
 
 ## License

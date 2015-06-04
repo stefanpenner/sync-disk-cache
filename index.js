@@ -1,16 +1,15 @@
 'use strict';
 
 var path = require('path');
-var RSVP = require('rsvp');
 var fs = require('fs');
-var readFile = RSVP.denodeify(fs.readFile);
-var writeFile = RSVP.denodeify(fs.writeFile);
-var mkdirp = RSVP.denodeify(require('mkdirp'));
-var rimraf = RSVP.denodeify(require('rimraf'));
-var unlink = RSVP.denodeify(fs.unlink);
-var chmod = RSVP.denodeify(fs.chmod);
+var readFile = fs.readFileSync;
+var writeFile = fs.writeFileSync;
+var mkdirp = require('mkdirp').sync;
+var rimraf = require('rimraf').sync;
+var unlink = fs.unlink;
+var chmod = fs.chmodSync;
 var tmpDir = require('os').tmpDir();
-var debug = require('debug')('async-disk-cache');
+var debug = require('debug')('sync-disk-cache');
 
 var mode = {
   mode: parseInt('0777', 8)
@@ -24,10 +23,8 @@ var CacheEntry = require('./lib/cache-entry');
  * @param String filePath the path of the cached file
  * @returns CacheEntry an object representing that cache entry
  */
-function processFile(filePath) {
-  return function(fileStream) {
-    return new CacheEntry(true, filePath, fileStream.toString());
-  };
+function processFile(filePath, fileStream) {
+  return new CacheEntry(true, filePath, fileStream.toString());
 }
 
 /*
@@ -93,9 +90,7 @@ Cache.prototype.has = function(key) {
   var filePath = this.pathFor(key);
   debug('has: %s', filePath);
 
-  return new RSVP.Promise(function(resolve) {
-    fs.exists(filePath, resolve);
-  });
+  return fs.existsSync(filePath);
 };
 
 /*
@@ -110,8 +105,11 @@ Cache.prototype.get = function(key) {
   var filePath = this.pathFor(key);
   debug('get: %s', filePath);
 
-  return readFile(filePath).
-    then(processFile(filePath), handleENOENT);
+  try {
+    return processFile(filePath, readFile(filePath));
+  } catch(e) {
+    return handleENOENT(e);
+  }
 };
 
 /*
@@ -127,13 +125,11 @@ Cache.prototype.set = function(key, value) {
   var filePath = this.pathFor(key);
   debug('set : %s', filePath);
 
-  return mkdirp(path.dirname(filePath), mode).then(function() {
-    return writeFile(filePath, value, mode).then(function() {
-      return chmod(filePath, mode.mode).then(function() {
-        return filePath;
-      });
-    });
-  });
+  mkdirp(path.dirname(filePath), mode);
+  writeFile(filePath, value, mode);
+  chmod(filePath, mode.mode);
+
+  return filePath;
 };
 
 /*
@@ -148,7 +144,11 @@ Cache.prototype.remove = function(key) {
   var filePath = this.pathFor(key);
   debug('remove : %s', filePath);
 
-  return unlink(filePath).catch(handleENOENT);
+  try {
+    return unlink(filePath);
+  } catch(e) {
+    handleENOENT(e);
+  }
 };
 
 /*

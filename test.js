@@ -25,57 +25,41 @@ describe('cache', function() {
   });
 
   it('set', function() {
-    return cache.set(key, value).then(function(filePath) {
-      var stats = fs.statSync(filePath);
-      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    var filePath = cache.set(key, value);
+    var stats = fs.statSync(filePath);
+    var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
-      should(fs.readFileSync(filePath).toString()).equal(value);
-    });
+    should(fs.readFileSync(filePath).toString()).equal(value);
   });
 
   it('get (doesn\'t exist)', function() {
-    return cache.get(key).then(function(details) {
-      should(details.isCached).be.false;
-    });
+    should(cache.get(key).isCached).be.false;
   });
 
   it('get (does exist)', function() {
-    return cache.set(key, value).then(function(filePath) {
-      return cache.get(key).then(function(details) {
-        should(details.isCached).be.true;
-        should(details.value).equal(value);
-        should(details.key).equal(filePath);
-      });
-    });
+    var filePath = cache.set(key, value);
+    var details = cache.get(key);
+    should(details.isCached).be.true;
+    should(details.value).equal(value);
+    should(details.key).equal(filePath);
   });
 
   it('has (doesn\'t exist)', function() {
-    return cache.has(key).then(function(exists) {
-      should(exists).be.false;
-    });
+    should(cache.has(key)).be.false;
   });
 
   it('has (does exist)', function() {
-    return cache.set(key, value).then(function() {
-      return cache.has(key).then(function(exists) {
-        should(exists).be.true;
-      });
-    });
+    cache.set(key, value)
+    should(cache.has(key)).be.true;
   });
 
   it('remove', function() {
-    return cache.set(key, value).then(function() {
-      return cache.has(key).then(function(exists) {
-        should(exists).be.true;
+    cache.set(key, value);
+    should(cache.has(key)).be.true;
 
-        return cache.remove(key).then(function() {
-          return cache.has(key).then(function(exists) {
-            should(exists).be.false;
-          });
-        });
-      });
-    });
+    cache.remove(key);
+    should(cache.has(key)).be.false;
   });
 });
