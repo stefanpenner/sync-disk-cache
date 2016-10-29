@@ -8,7 +8,7 @@ var mkdirp = require('mkdirp').sync;
 var rimraf = require('rimraf').sync;
 var unlink = fs.unlinkSync;
 var chmod = fs.chmodSync;
-var tmpDir = require('os').tmpDir();
+var tmpDir = require('os').tmpdir();
 var debug = require('debug')('sync-disk-cache');
 var zlib = require('zlib');
 
