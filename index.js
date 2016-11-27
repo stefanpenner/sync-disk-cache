@@ -90,7 +90,7 @@ function Cache(key, _) {
 
 
   this.key = key || 'default-disk-cache';
-  this.root = path.join(this.tmpDir, this.key);
+  this.root = path.join(this.tmpDir, 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache', this.key);
 
   debug('new Cache { root: %s, compression: %s }', this.root, this.compression);
 }
