@@ -133,8 +133,6 @@ function Cache(key, _) {
  * @public
  *
  * @method clear
- * @returns {Promise} - fulfills when the cache has been cleared
- *                    - rejects when a failured occured during cache clear
  */
 defineFunction(Cache.prototype, 'clear', function() {
   debug('clear: %s', this.root);
@@ -149,8 +147,7 @@ defineFunction(Cache.prototype, 'clear', function() {
  *
  * @method has
  * @param {String} key the key to check existence of
- * @return {Promise} - fulfills with either true | false depending if the key was found or not
- *                   - rejects when a failured occured when checking existence of the key
+ * @return {Boolean} - whether the key was found or not
  */
 defineFunction(Cache.prototype, 'has', function(key) {
   var filePath = this.pathFor(key);
@@ -164,8 +161,7 @@ defineFunction(Cache.prototype, 'has', function(key) {
  *
  * @method set
  * @param {String} key they key to retrieve
- * @return {Promise} - fulfills with either the cache entry, or a cache miss entry
- *                   - rejects when a failure occured looking retrieving the key
+ * @return {CacheEntry} - either the cache entry, or a cache miss entry
  */
 defineFunction(Cache.prototype, 'get', function(key) {
   var filePath = this.pathFor(key);
@@ -184,8 +180,7 @@ defineFunction(Cache.prototype, 'get', function(key) {
  * @method set
  * @param {String} key the key we wish to store
  * @param {String} value the value we wish the key to be stored with
- * @returns {Promise#fulfilled} if the value was coõstored as the key
- * @returns {Promise#rejected} when a failure occured persisting the key
+ * @returns {String} filePath of the stored value
  */
 defineFunction(Cache.prototype, 'set', function(key, value) {
   var filePath = this.pathFor(key);
@@ -203,8 +198,7 @@ defineFunction(Cache.prototype, 'set', function(key, value) {
  *
  * @method remove
  * @param {String} key the key to remove from the cache
- * @returns {Promise#fulfilled} if the removal was successful
- * @returns {Promise#rejection} if something went wrong while removing the key
+ * @returns {Boolean} - whether the key was removed
  */
 defineFunction(Cache.prototype, 'remove', function(key) {
   var filePath = this.pathFor(key);
