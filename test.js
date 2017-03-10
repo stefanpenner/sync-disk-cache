@@ -29,7 +29,7 @@ describe('cache', function() {
   });
 
   it('pathFor', function() {
-    var expect = path.join(cache.root, key);
+    var expect = path.join(cache.root, new Buffer(key).toString('base64'));
 
     cache.pathFor(key).should.equal(expect);
   });

@@ -187,8 +187,16 @@ defineFunction(Cache.prototype, 'set', function(key, value) {
   var filePath = this.pathFor(key);
   debug('set : %s', filePath);
 
-  mkdirp(path.dirname(filePath), mode);
-  writeFile(filePath, this.compress(value), mode);
+  try {
+    writeFile(filePath, this.compress(value), mode);
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      mkdirp(path.dirname(filePath), mode);
+      writeFile(filePath, this.compress(value), mode);
+    } else {
+      throw e;
+    }
+  }
   chmod(filePath, mode.mode);
 
   return filePath;
@@ -220,7 +228,7 @@ defineFunction(Cache.prototype, 'remove', function(key) {
  * @returns the path where the key's value may reside
  */
 defineFunction(Cache.prototype, 'pathFor', function(key) {
-  return path.join(this.root, key);
+  return path.join(this.root, new Buffer(key).toString('base64'));
 });
 
 /*
