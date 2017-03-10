@@ -8,11 +8,12 @@ var mkdirp = require('mkdirp').sync;
 var rimraf = require('rimraf').sync;
 var unlink = fs.unlinkSync;
 var chmod = fs.chmodSync;
-var tmpDir = require('os').tmpdir();
 var debug = require('debug')('sync-disk-cache');
 var zlib = require('zlib');
 var heimdall =  require('heimdalljs');
-
+var os = require('os');
+var username = require('username').sync();
+var tmpdir = path.join(os.tmpdir(), username);
 var mode = {
   mode: parseInt('0777', 8)
 };
@@ -115,7 +116,7 @@ function hasCompression(compression) {
  */
 function Cache(key, _) {
   var options = _ || {};
-  this.tmpDir = options.location|| tmpDir;
+  this.tmpdir = options.location|| tmpdir;
 
   if (options.compression) {
     hasCompression(options.compression)
@@ -124,7 +125,7 @@ function Cache(key, _) {
 
 
   this.key = key || 'default-disk-cache';
-  this.root = path.join(this.tmpDir, 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache', this.key);
+  this.root = path.join(this.tmpdir, 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache', this.key);
 
   debug('new Cache { root: %s, compression: %s }', this.root, this.compression);
 }

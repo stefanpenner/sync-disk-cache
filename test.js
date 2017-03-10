@@ -18,6 +18,16 @@ describe('cache', function() {
     return cache.clear();
   });
 
+  it('has expected default root', function() {
+    var os = require('os');
+    var tmpdir = os.tmpdir();
+
+    var descriptiveName = 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache';
+    var defaultKey = 'default-disk-cache';
+
+    should(cache.root).equal(path.join(tmpdir, require('username').sync(), descriptiveName, defaultKey));
+  });
+
   it('pathFor', function() {
     var expect = path.join(cache.root, key);
 
