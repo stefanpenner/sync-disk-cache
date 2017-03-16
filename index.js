@@ -12,7 +12,7 @@ var debug = require('debug')('sync-disk-cache');
 var zlib = require('zlib');
 var heimdall =  require('heimdalljs');
 var os = require('os');
-var username = require('username').sync();
+var username = require('child_process').execSync('whoami').toString().trim();
 var tmpdir = path.join(os.tmpdir(), username);
 var mode = {
   mode: parseInt('0777', 8)
