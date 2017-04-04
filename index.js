@@ -45,9 +45,12 @@ function defineFunction(obj, name, fn) {
 
     metrics.start();
 
-    var result = fn.apply(this, arguments);
-
-    metrics.stop();
+    var result;
+    try {
+      result = fn.apply(this, arguments);
+    } finally {
+      metrics.stop();
+    }
 
     return result;
   };

@@ -5,6 +5,7 @@ var Cache = require('./');
 var fs = require('fs');
 var should = require('should');
 var crypto = require('crypto');
+var heimdall = require('heimdalljs');
 
 describe('cache', function() {
   var cache;
@@ -81,6 +82,11 @@ describe('cache', function() {
   it('has (does exist) (long key)', function() {
     cache.set(longKey, value);
     should(cache.has(longKey)).be.true;
+  });
+
+  it('properly stops metrics when an error occurs', function() {
+    should(function() { cache.pathFor(); }).throw();
+    should(heimdall.statsFor('sync-disk-cache').pathFor.startTime).be.undefined;
   });
 });
 
