@@ -4,11 +4,15 @@ var path = require('path');
 var Cache = require('./');
 var fs = require('fs');
 var should = require('should');
+var crypto = require('crypto');
 
 describe('cache', function() {
   var cache;
   var key = 'path/to/file.js';
   var value = 'Some test value';
+  var longKey = 'GET|https://api.example.com/lorem/ipsum/dolor/sit/amet/consectetur/adipiscing/elit?donec=in&consequat=nibh&mauris=condimentum&turpis=at&lacus=finibus&ut=rutrum&lorem=dictum&morbi=dictum&ac=lectus&et=porttitor&donec=vel&dolor=ex&cras=aliquam&risus=in&tellus=mollis&elementum=pellentesque&lobortis=a&ex=nec&egestas=nunc&nec=feugiat&ante=integer&sit=amet&nibh=id&nisi=vulputate&condimentum=aliquam&lacinia=dignissim';
+  var keyHash = crypto.createHash('sha1').update(key).digest('hex');
+  var longKeyHash = crypto.createHash('sha1').update(longKey).digest('hex');
 
   beforeEach(function() {
     cache = new Cache();
@@ -30,7 +34,7 @@ describe('cache', function() {
   });
 
   it('pathFor', function() {
-    var expect = path.join(cache.root, new Buffer(key).toString('base64'));
+    var expect = path.join(cache.root, keyHash);
 
     cache.pathFor(key).should.equal(expect);
   });
@@ -72,6 +76,11 @@ describe('cache', function() {
 
     cache.remove(key);
     should(cache.has(key)).be.false;
+  });
+
+  it('has (does exist) (long key)', function() {
+    cache.set(longKey, value);
+    should(cache.has(longKey)).be.true;
   });
 });
 

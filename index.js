@@ -14,6 +14,7 @@ var heimdall =  require('heimdalljs');
 var os = require('os');
 var username = require('child_process').execSync('whoami').toString().trim();
 var tmpdir = path.join(os.tmpdir(), username);
+var crypto = require('crypto');
 var mode = {
   mode: parseInt('0777', 8)
 };
@@ -228,7 +229,7 @@ defineFunction(Cache.prototype, 'remove', function(key) {
  * @returns the path where the key's value may reside
  */
 defineFunction(Cache.prototype, 'pathFor', function(key) {
-  return path.join(this.root, new Buffer(key).toString('base64'));
+  return path.join(this.root, crypto.createHash('sha1').update(key).digest('hex'));
 });
 
 /*
