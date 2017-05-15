@@ -29,7 +29,7 @@ describe('cache', function() {
 
     var descriptiveName = 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache';
     var defaultKey = 'default-disk-cache';
-    var username = require('child_process').execSync('whoami').toString().trim();
+    var username = require('username-sync')();
 
     should(cache.root).equal(path.join(tmpdir, username, descriptiveName, defaultKey));
   });
