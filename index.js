@@ -164,7 +164,7 @@ defineFunction(Cache.prototype, 'has', function(key) {
 /*
  * @public
  *
- * @method set
+ * @method get
  * @param {String} key they key to retrieve
  * @return {CacheEntry} - either the cache entry, or a cache miss entry
  */
