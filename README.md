@@ -6,6 +6,8 @@ An async sibling version is also available: [stefanpenner/async-disk-cache](http
 
 By default, this will usge `TMPDIR/<username>/` for storage, but this can be changed by setting the `$TMPDIR` environment variable.
 
+All stored values become strings.
+
 ## Example
 
 ```js
@@ -35,8 +37,10 @@ cache.get('foo') === {
 // retrieving (cache miss)
 cache.set('foo', 'content of foo'); // was set
 
-// clearing the cache
+// remove a key
+cache.remove('foo');
 
+// clearing the cache
 cache.clear(); // cache was cleared
 ```
 
