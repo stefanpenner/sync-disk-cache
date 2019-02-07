@@ -30,7 +30,7 @@
     "heimdalljs": "^0.2.3",
     "mkdirp": "^0.5.0",
     "rimraf": "^2.2.8",
-    "username-sync": "1.0.1"
+    "username-sync": "^1.0.2"
   },
   "devDependencies": {
     "istanbul": "^0.3.6",
