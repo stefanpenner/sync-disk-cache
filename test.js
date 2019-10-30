@@ -1,19 +1,19 @@
 'use strict';
 
-var path = require('path');
-var Cache = require('./');
-var fs = require('fs');
-var should = require('should');
-var crypto = require('crypto');
-var heimdall = require('heimdalljs');
+const path = require('path');
+const Cache = require('./');
+const fs = require('fs');
+const should = require('should');
+const crypto = require('crypto');
+const heimdall = require('heimdalljs');
 
 describe('cache', function() {
-  var cache;
-  var key = 'path/to/file.js';
-  var value = 'Some test value';
-  var longKey = 'GET|https://api.example.com/lorem/ipsum/dolor/sit/amet/consectetur/adipiscing/elit?donec=in&consequat=nibh&mauris=condimentum&turpis=at&lacus=finibus&ut=rutrum&lorem=dictum&morbi=dictum&ac=lectus&et=porttitor&donec=vel&dolor=ex&cras=aliquam&risus=in&tellus=mollis&elementum=pellentesque&lobortis=a&ex=nec&egestas=nunc&nec=feugiat&ante=integer&sit=amet&nibh=id&nisi=vulputate&condimentum=aliquam&lacinia=dignissim';
-  var keyHash = crypto.createHash('sha1').update(key).digest('hex');
-  var longKeyHash = crypto.createHash('sha1').update(longKey).digest('hex');
+  let cache;
+  const key = 'path/to/file.js';
+  const value = 'Some test value';
+  const longKey = 'GET|https://api.example.com/lorem/ipsum/dolor/sit/amet/consectetur/adipiscing/elit?donec=in&consequat=nibh&mauris=condimentum&turpis=at&lacus=finibus&ut=rutrum&lorem=dictum&morbi=dictum&ac=lectus&et=porttitor&donec=vel&dolor=ex&cras=aliquam&risus=in&tellus=mollis&elementum=pellentesque&lobortis=a&ex=nec&egestas=nunc&nec=feugiat&ante=integer&sit=amet&nibh=id&nisi=vulputate&condimentum=aliquam&lacinia=dignissim';
+  const keyHash = crypto.createHash('sha1').update(key).digest('hex');
+  const longKeyHash = crypto.createHash('sha1').update(longKey).digest('hex');
 
   beforeEach(function() {
     cache = new Cache();
@@ -24,26 +24,26 @@ describe('cache', function() {
   });
 
   it('has expected default root', function() {
-    var os = require('os');
-    var tmpdir = os.tmpdir();
+    let os = require('os');
+    let tmpdir = os.tmpdir();
 
-    var descriptiveName = 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache';
-    var defaultKey = 'default-disk-cache';
-    var username = require('username-sync')();
+    let descriptiveName = 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache';
+    let defaultKey = 'default-disk-cache';
+    let username = require('username-sync')();
 
     should(cache.root).equal(path.join(tmpdir, username, descriptiveName, defaultKey));
   });
 
   it('pathFor', function() {
-    var expect = path.join(cache.root, keyHash);
+    let expect = path.join(cache.root, keyHash);
 
     cache.pathFor(key).should.equal(expect);
   });
 
   it('set', function() {
-    var filePath = cache.set(key, value);
-    var stats = fs.statSync(filePath);
-    var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    let filePath = cache.set(key, value);
+    let stats = fs.statSync(filePath);
+    let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
     should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
@@ -55,8 +55,9 @@ describe('cache', function() {
   });
 
   it('get (does exist)', function() {
-    var filePath = cache.set(key, value);
-    var details = cache.get(key);
+    let filePath = cache.set(key, value);
+    let details = cache.get(key);
+
     should(details.isCached).be.true;
     should(details.value).equal(value);
     should(details.key).equal(filePath);
@@ -90,113 +91,85 @@ describe('cache', function() {
   });
 });
 
-var zlib = require('zlib');
+const zlib = require('zlib');
 
-if (/^v0\.10\.\d+$/.test(process.version)) {
-  describe('disabled compression in node v0.10.x', function(){
-    it('deflate should throw', function() {
-      should(function(){
-        new Cache('foo', {
-          compression: 'deflate'
-        })
-      }).throwError(/does not support synchronous zlib compression APIs/);
-    });
+describe('cache compress: [ deflate ]', function() {
+  let cache;
+  const key = 'path/to/file.js';
+  const value = 'Some test value';
 
-    it('deflateRaw', function(){
-      should(function(){
-        new Cache('foo', {
-          compression: 'deflateRaw'
-        })
-      }).throwError(/does not support synchronous zlib compression APIs/);
-    });
-
-    it('gzip', function(){
-      should(function(){
-        new Cache('foo', {
-          compression: 'gunzip'
-        })
-      }).throwError(/does not support synchronous zlib compression APIs/);
-    });
-  });
-} else {
-  describe('cache compress: [ deflate ]', function() {
-    var cache;
-    var key = 'path/to/file.js';
-    var value = 'Some test value';
-
-    beforeEach(function() {
-      cache = new Cache('my-testing-cache', {
-        compression: 'deflate'
-      });
-    });
-
-    afterEach(function() {
-      cache.clear();
-    });
-
-    it('set', function() {
-      var filePath = cache.set(key, value);
-      var stats = fs.statSync(filePath);
-      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
-
-      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
-
-      should(zlib.inflateSync(fs.readFileSync(filePath)).toString()).equal(value);
-      should(cache.get(key).value).equal(value);
+  beforeEach(function() {
+    cache = new Cache('my-testing-cache', {
+      compression: 'deflate'
     });
   });
 
-  describe('cache compress: [ gzip ]', function() {
-    var cache;
-    var key = 'path/to/file.js';
-    var value = 'Some test value';
+  afterEach(function() {
+    cache.clear();
+  });
 
-    beforeEach(function() {
-      cache = new Cache('my-testing-cache', {
-        compression: 'gzip'
-      });
-    });
+  it('set', function() {
+    let filePath = cache.set(key, value);
+    let stats = fs.statSync(filePath);
+    let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    afterEach(function() {
-      return cache.clear();
-    });
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
-    it('set', function() {
-      var filePath = cache.set(key, value);
-      var stats = fs.statSync(filePath);
-      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    should(zlib.inflateSync(fs.readFileSync(filePath)).toString()).equal(value);
+    should(cache.get(key).value).equal(value);
+  });
+});
 
-      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+describe('cache compress: [ gzip ]', function() {
+  let cache;
+  const key = 'path/to/file.js';
+  const value = 'Some test value';
 
-      should(zlib.gunzipSync(fs.readFileSync(filePath)).toString()).equal(value);
-      should(cache.get(key).value).equal(value);
+  beforeEach(function() {
+    cache = new Cache('my-testing-cache', {
+      compression: 'gzip'
     });
   });
 
-  describe('cache compress: [ deflateRaw ]', function() {
-    var cache;
-    var key = 'path/to/file.js';
-    var value = 'Some test value';
+  afterEach(function() {
+    return cache.clear();
+  });
 
-    beforeEach(function() {
-      cache = new Cache('my-testing-cache', {
-        compression: 'deflateRaw'
-      });
-    });
+  it('set', function() {
+    let filePath = cache.set(key, value);
+    let stats = fs.statSync(filePath);
+    let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    afterEach(function() {
-      return cache.clear();
-    });
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
 
-    it('set', function() {
-      var filePath = cache.set(key, value);
-      var stats = fs.statSync(filePath);
-      var mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+    should(zlib.gunzipSync(fs.readFileSync(filePath)).toString()).equal(value);
+    should(cache.get(key).value).equal(value);
+  });
+});
 
-      should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+describe('cache compress: [ deflateRaw ]', function() {
+  let cache;
+  const key = 'path/to/file.js';
+  const value = 'Some test value';
 
-      should(zlib.inflateRawSync(fs.readFileSync(filePath)).toString()).equal(value);
-      should(cache.get(key).value).equal(value);
+  beforeEach(function() {
+    cache = new Cache('my-testing-cache', {
+      compression: 'deflateRaw'
     });
   });
-}
+
+  afterEach(function() {
+    return cache.clear();
+  });
+
+  it('set', function() {
+    let filePath = cache.set(key, value);
+    let stats = fs.statSync(filePath);
+    let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
+
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+
+    should(zlib.inflateRawSync(fs.readFileSync(filePath)).toString()).equal(value);
+    should(cache.get(key).value).equal(value);
+  });
+});

@@ -1,27 +1,27 @@
 'use strict';
 
-var path = require('path');
-var fs = require('fs');
-var readFile = fs.readFileSync;
-var writeFile = fs.writeFileSync;
-var renameFile = fs.renameSync;
-var mkdirp = require('mkdirp').sync;
-var rimraf = require('rimraf').sync;
-var unlink = fs.unlinkSync;
-var chmod = fs.chmodSync;
-var debug = require('debug')('sync-disk-cache');
-var zlib = require('zlib');
-var heimdall =  require('heimdalljs');
-var os = require('os');
-var username = require('username-sync')();
-var tmpdir = path.join(os.tmpdir(), username);
-var crypto = require('crypto');
-var mode = {
+const path = require('path');
+const fs = require('fs');
+const readFile = fs.readFileSync;
+const writeFile = fs.writeFileSync;
+const renameFile = fs.renameSync;
+const mkdirp = require('mkdirp').sync;
+const rimraf = require('rimraf').sync;
+const unlink = fs.unlinkSync;
+const chmod = fs.chmodSync;
+const debug = require('debug')('sync-disk-cache');
+const zlib = require('zlib');
+const heimdall =  require('heimdalljs');
+const os = require('os');
+const username = require('username-sync')();
+const tmpdir = path.join(os.tmpdir(), username);
+const crypto = require('crypto');
+const mode = {
   mode: parseInt('0777', 8)
 };
 
-var CacheEntry = require('./lib/cache-entry');
-var Metric = require('./lib/metric');
+const CacheEntry = require('./lib/cache-entry');
+const Metric = require('./lib/metric');
 
 if (!heimdall.hasMonitor('sync-disk-cache')) {
   heimdall.registerMonitor('sync-disk-cache', function SyncDiskCacheSchema() {});
@@ -41,12 +41,12 @@ if (!heimdall.hasMonitor('sync-disk-cache')) {
  */
 function defineFunction(obj, name, fn) {
   obj[name] = function() {
-    var stats = heimdall.statsFor('sync-disk-cache');
-    var metrics = stats[name] = stats[name] || new Metric();
+    let stats = heimdall.statsFor('sync-disk-cache');
+    let metrics = stats[name] = stats[name] || new Metric();
 
     metrics.start();
 
-    var result;
+    let result;
     try {
       result = fn.apply(this, arguments);
     } finally {
@@ -88,7 +88,7 @@ function handleENOENT(reason) {
   throw reason;
 }
 
-var COMPRESSIONS = {
+const COMPRESSIONS = {
   deflate: {
     in: zlib.deflateSync,
     out: zlib.inflateSync,
@@ -119,20 +119,22 @@ function hasCompression(compression) {
  * @param {String} options optional string path to the location for the
  *                          cache. If omitted the system tmpdir is used
  */
-function Cache(key, _) {
-  var options = _ || {};
-  this.tmpdir = options.location|| tmpdir;
+class Cache{
+  constructor(key, _) {
+    const options = _ || {};
+    this.tmpdir = options.location|| tmpdir;
 
-  if (options.compression) {
-    hasCompression(options.compression)
+    if (options.compression) {
+      hasCompression(options.compression)
+    }
+    this.compression = options.compression;
+
+
+    this.key = key || 'default-disk-cache';
+    this.root = path.join(this.tmpdir, 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache', this.key);
+
+    debug('new Cache { root: %s, compression: %s }', this.root, this.compression);
   }
-  this.compression = options.compression;
-
-
-  this.key = key || 'default-disk-cache';
-  this.root = path.join(this.tmpdir, 'if-you-need-to-delete-this-open-an-issue-sync-disk-cache', this.key);
-
-  debug('new Cache { root: %s, compression: %s }', this.root, this.compression);
 }
 
 /*
@@ -156,7 +158,7 @@ defineFunction(Cache.prototype, 'clear', function() {
  * @return {Boolean} - whether the key was found or not
  */
 defineFunction(Cache.prototype, 'has', function(key) {
-  var filePath = this.pathFor(key);
+  const filePath = this.pathFor(key);
   debug('has: %s', filePath);
 
   return fs.existsSync(filePath);
@@ -170,7 +172,7 @@ defineFunction(Cache.prototype, 'has', function(key) {
  * @return {CacheEntry} - either the cache entry, or a cache miss entry
  */
 defineFunction(Cache.prototype, 'get', function(key) {
-  var filePath = this.pathFor(key);
+  const filePath = this.pathFor(key);
   debug('get: %s', filePath);
 
   try {
@@ -180,7 +182,7 @@ defineFunction(Cache.prototype, 'get', function(key) {
   }
 });
 
-var MAX_DIGITS = Math.pow(10, (Number.MAX_SAFE_INTEGER + '').length);
+const MAX_DIGITS = Math.pow(10, (Number.MAX_SAFE_INTEGER + '').length);
 
 /*
  * @public
@@ -191,10 +193,10 @@ var MAX_DIGITS = Math.pow(10, (Number.MAX_SAFE_INTEGER + '').length);
  * @returns {String} filePath of the stored value
  */
 defineFunction(Cache.prototype, 'set', function(key, value) {
-  var filePath = this.pathFor(key);
+  const filePath = this.pathFor(key);
   debug('set : %s', filePath);
-  var random = Math.random() * MAX_DIGITS;
-  var tmpfile = filePath + '.tmp.' + random;
+  const random = Math.random() * MAX_DIGITS;
+  const tmpfile = filePath + '.tmp.' + random;
 
   try {
     writeFile(tmpfile, this.compress(value), mode);
@@ -220,7 +222,7 @@ defineFunction(Cache.prototype, 'set', function(key, value) {
  * @returns {Boolean} - whether the key was removed
  */
 defineFunction(Cache.prototype, 'remove', function(key) {
-  var filePath = this.pathFor(key);
+  const filePath = this.pathFor(key);
   debug('remove : %s', filePath);
 
   try {
