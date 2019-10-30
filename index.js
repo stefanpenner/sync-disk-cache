@@ -4,6 +4,7 @@ var path = require('path');
 var fs = require('fs');
 var readFile = fs.readFileSync;
 var writeFile = fs.writeFileSync;
+var renameFile = fs.renameSync;
 var mkdirp = require('mkdirp').sync;
 var rimraf = require('rimraf').sync;
 var unlink = fs.unlinkSync;
@@ -179,6 +180,8 @@ defineFunction(Cache.prototype, 'get', function(key) {
   }
 });
 
+var MAX_DIGITS = Math.pow(10, (Number.MAX_SAFE_INTEGER + '').length);
+
 /*
  * @public
  *
@@ -190,17 +193,20 @@ defineFunction(Cache.prototype, 'get', function(key) {
 defineFunction(Cache.prototype, 'set', function(key, value) {
   var filePath = this.pathFor(key);
   debug('set : %s', filePath);
+  var random = Math.random() * MAX_DIGITS;
+  var tmpfile = filePath + '.tmp.' + random;
 
   try {
-    writeFile(filePath, this.compress(value), mode);
+    writeFile(tmpfile, this.compress(value), mode);
   } catch (e) {
     if (e.code === 'ENOENT') {
       mkdirp(path.dirname(filePath), mode);
-      writeFile(filePath, this.compress(value), mode);
+      writeFile(tmpfile, this.compress(value), mode);
     } else {
       throw e;
     }
   }
+  renameFile(tmpfile, filePath);
   chmod(filePath, mode.mode);
 
   return filePath;
