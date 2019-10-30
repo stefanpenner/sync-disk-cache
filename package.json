@@ -37,6 +37,9 @@
     "mocha": "^6.2.2",
     "should": "^13.2.3"
   },
+  "engines": {
+    "node": "8.* || >= 10.*"
+  },
   "jscsConfig": {
     "preset": "google",
     "disallowMultipleVarDecl": true,
