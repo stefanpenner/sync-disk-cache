@@ -17,7 +17,7 @@ const username = require('username-sync')();
 const tmpdir = path.join(os.tmpdir(), username);
 const crypto = require('crypto');
 const mode = {
-  mode: parseInt('0777', 8)
+  mode: '600'
 };
 
 const CacheEntry = require('./lib/cache-entry');
@@ -202,7 +202,7 @@ defineFunction(Cache.prototype, 'set', function(key, value) {
     writeFile(tmpfile, this.compress(value), mode);
   } catch (e) {
     if (e.code === 'ENOENT') {
-      mkdirp(path.dirname(filePath), mode);
+      mkdirp(path.dirname(filePath), { mode: '700' });
       writeFile(tmpfile, this.compress(value), mode);
     } else {
       throw e;

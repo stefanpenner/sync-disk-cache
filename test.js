@@ -45,7 +45,7 @@ describe('cache', function() {
     let stats = fs.statSync(filePath);
     let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0600');
 
     should(fs.readFileSync(filePath).toString()).equal(value);
   });
@@ -113,7 +113,7 @@ describe('cache compress: [ deflate ]', function() {
     let stats = fs.statSync(filePath);
     let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0600');
 
     should(zlib.inflateSync(fs.readFileSync(filePath)).toString()).equal(value);
     should(cache.get(key).value).equal(value);
@@ -140,7 +140,7 @@ describe('cache compress: [ gzip ]', function() {
     let stats = fs.statSync(filePath);
     let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0600');
 
     should(zlib.gunzipSync(fs.readFileSync(filePath)).toString()).equal(value);
     should(cache.get(key).value).equal(value);
@@ -167,7 +167,7 @@ describe('cache compress: [ deflateRaw ]', function() {
     let stats = fs.statSync(filePath);
     let mode = '0' + (stats.mode & parseInt('777', 8)).toString(8);
 
-    should(mode).equal(process.platform === 'win32' ? '0666' : '0777');
+    should(mode).equal(process.platform === 'win32' ? '0666' : '0600');
 
     should(zlib.inflateRawSync(fs.readFileSync(filePath)).toString()).equal(value);
     should(cache.get(key).value).equal(value);
